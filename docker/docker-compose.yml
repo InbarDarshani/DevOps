@@ -1,0 +1,9 @@
+version: "3.3"
+services:
+  web:
+    container_name: DevOps Project - ${app_name}
+    environment:
+      - NODE_ENV=${env}
+    image: ${docker_user}/${app_name}:latest
+    ports:
+      - "80:3000"

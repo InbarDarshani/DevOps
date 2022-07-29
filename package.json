@@ -1,11 +1,13 @@
 {
-  "name": "demo",
+  "name": "devops-project",
   "description": "DevOps Project",
   "author": "Team",
   "version": "0.1.0",
   "license": "MIT",
-  "main": "index.js",
+  "private": true,
+  "main": "app/client/index.js",
   "scripts": {
+    "ansible": "run_ansible.cmd",
     "install": "npm run install:server && npm run install:client",
     "install:server": "cd server && npm install",
     "install:client": "cd client && npm install",

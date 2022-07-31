@@ -30,6 +30,7 @@ services:
       - ./app/server:/usr/app/server
     ports:
       - 5000:5000
+      - 80:5000
     networks:
       - mern-network
 
@@ -39,7 +40,7 @@ services:
     environment:
       - NODE_ENV=${env}
       - MONGO_URL=mongodb://${db_container_name}:27017 #For code use, The URL to access db's container from host
-      - PORT=5000 #For code use
+      - PORT=80 #For code use
 
     stdin_open: true #Keep STDIN open even if not attached, Same as docker run --interactive 
     tty: true #Allocate a pseudo-TTY, Same as docker run --tty   
@@ -57,7 +58,6 @@ services:
       - ./app/client:/usr/app/client
     ports:
       - 3000:3000
-      - 80:3000
     networks:
       - mern-network
 

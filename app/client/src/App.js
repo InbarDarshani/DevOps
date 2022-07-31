@@ -11,7 +11,7 @@ const App = () => {
     fetch('/api/tasks')
       .then(res => res.json())
       .then(setTasks);
-  });
+  }, []);
 
   useEffect(() => {
     getTasks();

@@ -1,8 +1,10 @@
 const mongoose = require('mongoose');
 
-mongoose.connect('mongodb://127.0.0.1:27017/tasks', { useNewUrlParser: true, useUnifiedTopology: true })
+const url = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017';
+
+mongoose.connect(url + '/tasks', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('Database connected successfully!'))
-    .catch(() => console.log('Unable to connect to database'));
+    .catch((e) => console.log('Unable to connect to database ', e));
 
 //mongoose.set('useFindAndModify', false);
 

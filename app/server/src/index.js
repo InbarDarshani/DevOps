@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 
 const app = express();
 
-const routeTasks = require('./src/routes/tasks');
+const routeTasks = require('./routes/tasks');
 
 app.use(express.static(path.join(__dirname, 'client/build')));
 app.use(bodyParser.json());
@@ -18,4 +18,4 @@ app.get('*', (req, res) => {
 const port = process.env.PORT || 5000;
 app.listen(port);
 
-console.log(`Server is running \nlistening on port ${port}...`);
+console.log(`Server is running and listening to port ${port} ...`);

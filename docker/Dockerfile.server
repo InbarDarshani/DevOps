@@ -1,0 +1,18 @@
+#--------------------- Dockerfile for Node Express server ---------------------#
+
+#Build node exspress server
+FROM node:latest
+
+#Set working directory inside the container
+WORKDIR /usr/app/server
+
+#Copy server folder from build context folder to the container
+COPY app/server /usr/app/server
+
+#Install client's dependencies
+RUN npm install
+
+#expose default server port
+EXPOSE 5000
+
+CMD ["npm","start"]

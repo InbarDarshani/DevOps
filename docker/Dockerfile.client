@@ -1,0 +1,18 @@
+#--------------------- Dockerfile for React client ---------------------#
+
+#Build react client
+FROM node:latest
+
+#Set working directory inside the container
+WORKDIR /usr/app/client
+
+#Copy server folder from build context folder to the container
+COPY app/client /usr/app/client
+
+#Install client's dependencies
+RUN npm install
+
+#expose default react port
+EXPOSE 3000
+
+CMD ["npm","start"]

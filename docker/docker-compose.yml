@@ -1,9 +1,75 @@
+#--------------------- Docker Compose file for MERN app ---------------------#
+#Docs: https://docs.docker.com/compose/compose-file 
+
 version: "3.3"
 services:
-  web:
-    container_name: DevOps Project - ${app_name}
+
+  #------ Databse Container ------#
+  db:
+    container_name: ${db_container_name}
+    image: ${db_image}
+    pull_policy: missing
+    volumes:
+      - mongodb-data:/data/db
+    ports:
+      - 27017:27017
+    networks:
+      - mern-network
+
+  #------ Server Container ------#
+  server:
+    container_name: ${server_container_name}
+    image: "${server_image}"
+    pull_policy: missing
+    command: npm start
+    depends_on:
+      - db
+    volumes:
+      - ./app/server:/usr/app/server
+    ports:
+      - 5000:5000
+    networks:
+      - mern-network
+    #Vars in default server's env file, Accesible via Node's global varaiable - process.env.VAR_NAME
+    env_file:
+      - .env
     environment:
       - NODE_ENV=${env}
-    image: ${docker_user}/${app_name}:latest
+      - MONGO_URL=mongodb://${db_container_name}:27017 #For code use, The URL to access db's container from host
+      - PORT=5000 #For code use
+    stdin_open: true #Keep STDIN open even if not attached, Same as docker run --interactive 
+    tty: true #Allocate a pseudo-TTY, Same as docker run --tty   
+
+  #------ Client Container ------#
+  client:
+    container_name: ${client_container_name}
+    image: "${client_image}"
+    pull_policy: missing
+    command: npm run start-noConsoleClearing #command: npm start
+    depends_on:
+      - server
+    volumes:
+      - ./app/client:/usr/app/client
     ports:
-      - "80:3000"
+      - 3000:3000
+    networks:
+      - mern-network
+    #Vars in default client's env file, Accesible via Node's global varaiable - process.env.VAR_NAME
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=${env}
+      - CHOKIDAR_USEPOLLING=true
+      - BROWSER=none #In order to run react app without opening browser
+      - SERVER_URL=http://${server_container_name}:5000 #For code use, The URL to access server's container from host
+    stdin_open: true #Keep STDIN open even if not attached, Same as docker run --interactive 
+    tty: true #Allocate a pseudo-TTY, Same as docker run --tty   
+
+#------ Services Configurations ------#
+networks:
+  mern-network:
+    driver: bridge #Containers can communicate only by given ip or name
+
+volumes:
+  mongodb-data:
+    driver: local

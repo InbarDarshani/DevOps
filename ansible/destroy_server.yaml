@@ -1,0 +1,182 @@
+#---------------------------------- Ansible Playbook ----------------------------------#
+#------------------ https://docs.ansible.com/ansible/2.9/modules/ ---------------------#
+
+#---------------------------------- Server Creation Job ----------------------------------#
+- name: Destroy AWS Resources
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+    - group_vars/vars.env
+    - group_vars/saved.env
+  vars:
+    ansible_host_key_checking: False
+    ansible_python_interpreter: /usr/bin/python3
+
+  tasks:
+
+    #EC2 Instance: https://docs.ansible.com/ansible/2.9/modules/ec2_module.html
+    - name: Terminate EC2 instance
+      ec2:
+        state: absent
+        instance_ids: "{{ server_id }}"
+        instance_type: "{{ aws_server_type }}"
+        region: "{{ aws_region }}"
+        image: "{{ aws_centos_ami }}"
+        vpc_subnet_id: "{{ subnet_id }}"
+        wait: yes
+      register: server_ec2
+
+    #Security Group: https://docs.ansible.com/ansible/2.9/modules/ec2_group_module.html
+    - name: Delete security group
+      ec2_group:
+        state: absent
+        name: "{{ aws_vpc_name }}_sg"
+        description: "{{ aws_vpc_name }}_sg"
+        vpc_id: "{{ vpc_id }}"
+        region: "{{ aws_region }}"
+        rules:
+          - proto: tcp            #Open Protocol
+            ports:                #Open Ports
+              - 80                #HTTP
+              - 22                #SSH
+            cidr_ip: 0.0.0.0/0    #UNSECURED For Project Only
+            rule_desc: open to the world
+      register: sg
+
+    #Internet gateway: https://docs.ansible.com/ansible/2.9/modules/ec2_vpc_igw_module.html 
+    - name: Delete internet gateway
+      ec2_vpc_igw:
+        state: absent
+        vpc_id: "{{ vpc_id }}"
+        region: "{{ aws_region }}"
+        tags:
+          Name: "{{ aws_vpc_name }}_igw"
+      register: igw
+
+    #Subnet: https://docs.ansible.com/ansible/2.9/modules/ec2_vpc_subnet_module.html
+    - name: UnAssociate subnet to the VPC
+      ec2_vpc_subnet:
+        state: absent
+        vpc_id: "{{ vpc_id }}"
+        region: "{{ aws_region }}"
+        cidr: "{{ aws_subnet_cidr }}"
+        map_public: yes
+        az: "{{ aws_subnet_az }}"
+        resource_tags:
+          Name: "{{ aws_vpc_name }}_subnet"
+        wait: yes
+      register: subnet
+
+      #VPC: https://docs.ansible.com/ansible/2.9/modules/ec2_vpc_net_module.html
+    - name: Delete VPC
+      ec2_vpc_net:  
+        state: absent              
+        name: "{{ aws_vpc_name }}"        
+        cidr_block: "{{ aws_vpc_cidr }}"
+        region: "{{ aws_region }}"
+      register: vpc
+
+    #Route Table: https://docs.ansible.com/ansible/2.9/modules/ec2_vpc_route_table_module.html
+    - name: Delete Route table for public Subnet
+      ec2_vpc_route_table:
+        state: absent
+        vpc_id: "{{ vpc_id }}"
+        region: "{{ aws_region }}"
+        route_table_id: "{{ rt_id }}"
+        lookup: id
+        tags:
+          Name: "{{ aws_vpc_name }}_public_rt"
+
+
+
+#TODO:
+#---------------------------------- Server Setup Job ----------------------------------#
+
+# - name: Setup web server
+#   hosts: app
+#   user: centos
+#   become: True
+#   gather_facts: True
+#   vars_files:
+#     - group_vars/vars.env
+#     - group_vars/saved.env
+#   vars:
+#     ansible_host_key_checking: False
+    
+#   tasks:
+
+#     #TODO: Combine?
+#     #yum: https://docs.ansible.com/ansible/2.9/modules/yum_module.html
+#     - name: Install base packages
+#       yum:
+#         name:
+#           - epel-release
+#         state: present
+#     - name: Install base packages
+#       yum:
+#         name:
+#           - git
+#           - yum-utils
+#           - python-pip
+#           - mongodb-org
+#         state: present
+
+#     #---------------------------------- Docker Setup on server ----------------------------------#
+
+#     #shell: https://docs.ansible.com/ansible/2.9/modules/shell_module.html
+#     - name: Download docker 
+#       shell: yum-confing-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+#     #yum: https://docs.ansible.com/ansible/2.9/modules/yum_module.html
+#     - name: Install docker packages
+#       yum:
+#          name:
+#            - docker-ce
+#            - docker-ce-cidr_block
+#            - containerd.io
+#            - docker-compose
+#          state: present
+      
+#     #service: https://docs.ansible.com/ansible/2.9/modules/service_module.html
+#     - name: Restart docker service
+#       service:
+#         name: docker
+#         state: restarted
+#         enabled: yes
+
+#     #copy: https://docs.ansible.com/ansible/2.9/modules/copy_module.html
+#     - name: Copy key file to server with owner permissions
+#       copy:
+#         src: "~/.ssh/id_rsa"
+#         dest: "~/.ssh/id_rsa"
+#         mode: '0600'
+
+#     #git: https://docs.ansible.com/ansible/2.9/modules/git_module.html
+#     - name: Clone git repository in server
+#       git:
+#         repo: "{{ git_repo }}"
+#         dest: /opt/my_site
+#         version: main
+#         key_file: ~/.ssh/id_rsa
+#         accept_hostkey: yes
+#         force: yes
+      
+#     #shell: https://docs.ansible.com/ansible/2.9/modules/shell_module.html
+#     - name: Build docker image and push to DockerHub          #Loop fo running all these docker commands
+#       shell: "{{ item }}"
+#       args:
+#         chdir: /opt/app
+#       with_items:
+#         - docker login --username {{ docker_user }} --password {{ docker_access_token }}            #Login to DockerHub
+#         - docker build --file ../docker/Dockerfile --tag {{ docker_user }}/{{ app_name }}:latest    #Build an image from a Dockerfile with tag 'latest'
+#         - docker push {{ docker_user }}/{{ app_name }}:latest                                       #Push the image to DockerHub
+#     - name: Start docker app
+#       shell: docker-compose --detach --env-file ./group_vars/.env up                          #Create and start containers in the background (Detached mode)
+#       args:
+#         chdir: /opt/app
+    
+#     #Debug: https://docs.ansible.com/ansible/2.9/modules/debug_module.html 
+#     - debug:
+#         msg: -"Replace Server's Public IP in GitHub to {{ server_ip }}"
+#              -"Your app is available at http://{{ server_ip }}"

@@ -9,6 +9,7 @@ services:
     container_name: ${db_container_name}
     image: ${db_image}
     pull_policy: missing
+
     volumes:
       - mongodb-data:/data/db
     ports:
@@ -22,6 +23,7 @@ services:
     image: "${server_image}"
     pull_policy: missing
     command: npm start
+
     depends_on:
       - db
     volumes:
@@ -30,6 +32,7 @@ services:
       - 5000:5000
     networks:
       - mern-network
+
     #Vars in default server's env file, Accesible via Node's global varaiable - process.env.VAR_NAME
     env_file:
       - .env
@@ -37,6 +40,7 @@ services:
       - NODE_ENV=${env}
       - MONGO_URL=mongodb://${db_container_name}:27017 #For code use, The URL to access db's container from host
       - PORT=5000 #For code use
+
     stdin_open: true #Keep STDIN open even if not attached, Same as docker run --interactive 
     tty: true #Allocate a pseudo-TTY, Same as docker run --tty   
 
@@ -46,14 +50,17 @@ services:
     image: "${client_image}"
     pull_policy: missing
     command: npm run start-noConsoleClearing #command: npm start
+
     depends_on:
       - server
     volumes:
       - ./app/client:/usr/app/client
     ports:
       - 3000:3000
+      - 80:3000
     networks:
       - mern-network
+
     #Vars in default client's env file, Accesible via Node's global varaiable - process.env.VAR_NAME
     env_file:
       - .env
@@ -62,6 +69,7 @@ services:
       - CHOKIDAR_USEPOLLING=true
       - BROWSER=none #In order to run react app without opening browser
       - SERVER_URL=http://${server_container_name}:5000 #For code use, The URL to access server's container from host
+
     stdin_open: true #Keep STDIN open even if not attached, Same as docker run --interactive 
     tty: true #Allocate a pseudo-TTY, Same as docker run --tty   
 

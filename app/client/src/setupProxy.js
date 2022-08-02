@@ -1,14 +1,18 @@
 //https://create-react-app.dev/docs/proxying-api-requests-in-development/#configuring-the-proxy-manually
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
-const url = process.env.SERVER_URL || 'http://localhost:5000';
+const url = process.env.API || 'http://localhost:5000';
 
 module.exports = function (app) {
-  app.use(
-    '/api',
-    createProxyMiddleware({
-      target: url,
-      changeOrigin: true,
-    })
-  );
+    app.use(
+        '/api',
+        createProxyMiddleware({
+            target: url,
+            changeOrigin: true,
+        })
+    );
 };
+
+console.log("Proxy was set to ", url);
+console.log(process.env);
+

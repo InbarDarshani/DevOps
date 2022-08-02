@@ -22,8 +22,8 @@
     "not op_mini all"
   ],
   "dependencies": {
-    "concurrently": "^7.3.0",
     "http-proxy-middleware": "^2.0.6",
+    "concurrently": "^7.3.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "^5.0.1"

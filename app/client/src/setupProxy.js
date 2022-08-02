@@ -9,10 +9,7 @@ module.exports = function (app) {
         createProxyMiddleware({
             target: url,
             changeOrigin: true,
+            pathRewrite: { '^/api': '' }
         })
     );
 };
-
-console.log("Proxy was set to ", url);
-console.log(process.env);
-

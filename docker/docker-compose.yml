@@ -7,7 +7,7 @@ services:
   #------ Client Container ------#
   client:
     container_name: my-react-nginx-client
-    image: my-react-nginx-client
+    image: inbarprojects/my-react-nginx-client:latest
     pull_policy: missing
 
     depends_on:
@@ -25,7 +25,7 @@ services:
   #------ Server Container ------#
   server:
     container_name: my-node-server
-    image: my-node-server
+    image: inbarprojects/my-node-server:latest
     pull_policy: missing
 
     depends_on:
@@ -41,7 +41,7 @@ services:
       - .env
     environment:
       - NODE_ENV=${env}
-      - MONGO_URI=mongodb://${db_container_name}:27017 #For code use, The URI to access db's container from host
+      - MONGO_URI=mongodb://my-mongo-db:27017 #For code use, The URI to access db's container from host
       - PORT=5000 #For code use
 
     stdin_open: true #Keep STDIN open even if not attached, Same as docker run --interactive 

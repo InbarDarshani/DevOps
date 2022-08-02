@@ -1,26 +1,7 @@
-#--------------------- Docker Compose file for MERN app ---------------------#
 #Docs: https://docs.docker.com/compose/compose-file 
 
 version: "3.3"
 services:
-
-  #------ Client Container ------#
-  client:
-    container_name: my-react-nginx-client
-    image: inbarprojects/my-react-nginx-client:latest
-    pull_policy: always
-
-    depends_on:
-      - server
-    networks:
-      - mern-network
-
-    ports:
-      - 80:80
-      - 443:443
-
-    stdin_open: true #Keep STDIN open even if not attached, Same as docker run --interactive 
-    tty: true #Allocate a pseudo-TTY, Same as docker run --tty   
 
   #------ Server Container ------#
   server:

@@ -34,7 +34,7 @@ services:
       - mern-network
 
     ports:
-      - 5000
+      - 80:5000
 
     #Vars in default server's env file, Accesible via Node's global varaiable - process.env.VAR_NAME
     env_file:

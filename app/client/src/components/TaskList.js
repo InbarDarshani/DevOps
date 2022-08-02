@@ -1,22 +1,17 @@
 import React from 'react';
+import axios from "../axios"
 
 const TaskList = ({ tasks, updateTasks }) => {
   const clickDeleteTask = (event, task) => {
     event.preventDefault();
 
-    fetch(`/api/tasks/delete/${task._id}`, {
-      method: 'delete',
-    })
-      .then(res => res.json())
-      .then(() => updateTasks());
+    axios.delete(`/api/tasks/delete/${task._id}`)
+      .then(res => updateTasks(res.data));
   };
 
   const toggleDone = task => {
-    fetch(`/api/tasks/update/${task._id}`, {
-      method: 'post',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ done: !task.done }),
-    }).then(() => updateTasks());
+    axios.post(`/api/tasks/update/${task._id}`, { done: !task.done })
+      .then(() => updateTasks());
   };
 
   return (

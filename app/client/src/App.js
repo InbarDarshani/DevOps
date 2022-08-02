@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
-
 import TasksList from './components/TaskList';
+import axios from "./axios"
 
 const App = () => {
   const [tasks, setTasks] = useState([]);
   const [newTaskTitle, setNewTaskTitle] = useState('');
 
   const getTasks = useCallback(() => {
-    fetch('/api/tasks')
-      .then(res => res.json())
-      .then(setTasks);
+    axios.get('/api/tasks')
+      .then(res => setTasks(res.data));
   }, []);
 
   useEffect(() => {
@@ -19,15 +18,8 @@ const App = () => {
 
   const clickAddTask = event => {
     event.preventDefault();
-
-    fetch('/api/tasks/add', {
-      method: 'post',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: newTaskTitle }),
-    }).then(() => {
-      setNewTaskTitle('');
-      getTasks();
-    });
+    axios.post('/api/tasks/add', { title: newTaskTitle })
+      .then(() => { setNewTaskTitle(''); getTasks(); });
   };
 
   return (

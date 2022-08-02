@@ -8,8 +8,7 @@ module.exports = function (app) {
         '/api',
         createProxyMiddleware({
             target: url,
-            changeOrigin: true,
-            pathRewrite: { '^/api': '' }
+            changeOrigin: true
         })
     );
 };

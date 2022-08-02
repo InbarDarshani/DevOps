@@ -4,80 +4,64 @@
 version: "3.3"
 services:
 
-  #------ Databse Container ------#
-  db:
-    container_name: ${db_container_name}
-    image: ${db_image}
+  #------ Client Container ------#
+  client:
+    container_name: my-react-nginx-client
+    image: my-react-nginx-client
     pull_policy: missing
 
-    volumes:
-      - mongodb-data:/data/db
-    ports:
-      - 27017:27017
+    depends_on:
+      - server
     networks:
       - mern-network
+
+    ports:
+      - 80:80
+      - 443:443
+
+    stdin_open: true #Keep STDIN open even if not attached, Same as docker run --interactive 
+    tty: true #Allocate a pseudo-TTY, Same as docker run --tty   
 
   #------ Server Container ------#
   server:
-    container_name: ${server_container_name}
-    image: "${server_image}"
+    container_name: my-node-server
+    image: my-node-server
     pull_policy: missing
-    command: npm start
 
     depends_on:
       - db
-    volumes:
-      - ./app/server:/usr/app/server
-    ports:
-      - 5000:5000
-      - 80:5000
     networks:
       - mern-network
+
+    ports:
+      - 5000
 
     #Vars in default server's env file, Accesible via Node's global varaiable - process.env.VAR_NAME
     env_file:
       - .env
     environment:
       - NODE_ENV=${env}
-      - MONGO_URL=mongodb://${db_container_name}:27017 #For code use, The URL to access db's container from host
-      - PORT=80 #For code use
+      - MONGO_URI=mongodb://${db_container_name}:27017 #For code use, The URI to access db's container from host
+      - PORT=5000 #For code use
 
     stdin_open: true #Keep STDIN open even if not attached, Same as docker run --interactive 
     tty: true #Allocate a pseudo-TTY, Same as docker run --tty   
 
-  #------ Client Container ------#
-  client:
-    container_name: ${client_container_name}
-    image: "${client_image}"
-    pull_policy: missing
-    command: npm run start-noConsoleClearing #command: npm start
-
-    depends_on:
-      - server
+  #------ Databse Container ------#
+  db:
+    container_name: my-mongo-db
+    image: mongo
     volumes:
-      - ./app/client:/usr/app/client
-    ports:
-      - 3000:3000
+      - mongodb-data:/data/db
     networks:
       - mern-network
 
-    #Vars in default client's env file, Accesible via Node's global varaiable - process.env.VAR_NAME
-    env_file:
-      - .env
-    environment:
-      - NODE_ENV=${env}
-      - CHOKIDAR_USEPOLLING=true
-      - BROWSER=none #In order to run react app without opening browser
-      - SERVER_URL=http://${server_container_name}:5000 #For code use, The URL to access server's container from host
-
-    stdin_open: true #Keep STDIN open even if not attached, Same as docker run --interactive 
-    tty: true #Allocate a pseudo-TTY, Same as docker run --tty   
-
 #------ Services Configurations ------#
+#Networks that are shared among multiple services
 networks:
   mern-network:
     driver: bridge #Containers can communicate only by given ip or name
-
+#Named volumes that are shared among multiple services 
 volumes:
   mongodb-data:
     driver: local

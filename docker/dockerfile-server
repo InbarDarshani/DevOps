@@ -1,0 +1,16 @@
+#--------------------- Node Express server image ---------------------#
+
+#Build node exspress server
+FROM node:latest AS server
+
+#Set working directory inside the container
+WORKDIR /app/server
+
+#Copy files from project's directory to working directory in container
+COPY app/server .
+
+#Packages setup
+RUN npm config set fund false 
+RUN npm install
+
+CMD [ "npm", "start" ]

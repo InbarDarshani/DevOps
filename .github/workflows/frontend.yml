@@ -19,7 +19,7 @@ jobs:
           password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
       
       - name: Build Image
-        run: docker build --file docker/dockerfile-client --tag ${{ secrets.DOCKER_USER }}/{{ secrets.DOCKER_CLIENT_REPO }}:latest --build-arg API=http://{{ api }} .
+        run: docker build --file docker/dockerfile-client --tag ${{ secrets.DOCKER_USER }}/{{ secrets.DOCKER_CLIENT_REPO }}:latest --build-arg API=http://${{ secrets.HOST_BACKEND }} .
 
       - name: push to DockerHub
         run: docker push ${{ secrets.DOCKER_USER }}/{{ secrets.DOCKER_CLIENT_REPO }}:latest
@@ -31,8 +31,8 @@ jobs:
       - name: deploy app
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.BACKEND_HOST }}
-          username: ${{ secrets.BACKEND_HOST_USER }}
+          host: ${{ secrets.HOST_FRONTEND }}
+          username: ${{ secrets.HOST_FRONTEND_USER }}
           key: ${{ secrets.PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
           script_stop: true

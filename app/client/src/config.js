@@ -1,0 +1,1 @@
+export const API_BASE_URL = process.env.API || 'http://localhost:3000'; 

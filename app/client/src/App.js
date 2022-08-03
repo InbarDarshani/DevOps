@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import TasksList from './components/TaskList';
-import { API_BASE_URL } from '../config';
+import { API_BASE_URL } from './config';
 
 const App = () => {
   const [tasks, setTasks] = useState([]);

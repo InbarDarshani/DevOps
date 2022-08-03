@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import TasksList from './components/TaskList';
-import axios from "./axios"
+import { API_BASE_URL } from '../config';
 
 const App = () => {
   const [tasks, setTasks] = useState([]);
   const [newTaskTitle, setNewTaskTitle] = useState('');
 
   const getTasks = useCallback(() => {
-    axios.get('/api/tasks')
+    axios.get(`${API_BASE_URL}/api/tasks`)
       .then(res => setTasks(res.data));
   }, []);
 
@@ -18,7 +18,7 @@ const App = () => {
 
   const clickAddTask = event => {
     event.preventDefault();
-    axios.post('/api/tasks/add', { title: newTaskTitle })
+    axios.post(`${API_BASE_URL}/api/tasks/add`, { title: newTaskTitle })
       .then(() => { setNewTaskTitle(''); getTasks(); });
   };
 

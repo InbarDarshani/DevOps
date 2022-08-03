@@ -4,7 +4,7 @@
 FROM node:latest AS builder
 
 #Set working directory inside the container
-WORKDIR /app/client
+WORKDIR /usr/share/nginx/html/
 
 #Copy files from project's directory to working directory in container
 COPY app/client .
@@ -26,7 +26,8 @@ WORKDIR /usr/share/nginx/html/
 RUN rm -rf /usr/share/nginx/html/*
 
 #Copy static assets from built app
-COPY --from=builder /app/client/build /usr/share/nginx/html/
+# COPY --from=builder /app/client/build /usr/share/nginx/html/
+# COPY --from=builder /app/client/build /usr/share/nginx/html/
 
 #Containers run nginx with global directives and daemon off
 ENTRYPOINT ["nginx", "-g", "daemon off;"]

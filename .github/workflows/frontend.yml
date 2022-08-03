@@ -19,7 +19,7 @@ jobs:
           password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
       
       - name: Build Image
-        run: docker build --file docker/dockerfile-client --tag ${{ secrets.DOCKER_USER }}/{{ secrets.DOCKER_CLIENT_REPO }}:latest --build-arg API=http://{{ api }} .
+        run: docker build --file docker/dockerfile-client --tag ${{ secrets.DOCKER_USER }}/{{ secrets.DOCKER_CLIENT_REPO }}:latest --build-arg API=http://${{ secrets.HOST_BACKEND }} .
 
       - name: push to DockerHub
         run: docker push ${{ secrets.DOCKER_USER }}/{{ secrets.DOCKER_CLIENT_REPO }}:latest

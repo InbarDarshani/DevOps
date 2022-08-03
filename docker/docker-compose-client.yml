@@ -13,11 +13,5 @@ services:
       - 80:80
       - 443:443
 
-    #Vars in default server's env file, Accesible via Node's global varaiable - process.env.VAR_NAME
-    env_file:
-      - .env
-    environment:
-      - NODE_ENV=${env}
-
     stdin_open: true #Keep STDIN open even if not attached, Same as docker run --interactive 
     tty: true #Allocate a pseudo-TTY, Same as docker run --tty   

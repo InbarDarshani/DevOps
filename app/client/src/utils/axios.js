@@ -22,16 +22,16 @@ if (process.env.NODE_ENV === "development") {
 else {
     instanceConfig = axios.create({
         baseURL: process.env.REACT_APP_API,
-        // timeout: 20000,
-        // withCredentials: true,
-        // headers: {
-        //     "Access-Control-Allow-Origin": process.env.REACT_APP_API,
-        //     "Access-Control-Allow-Headers": "*",
-        //     "Access-Control-Allow-Credentials": "true",
-        //     "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-        //     "Content-Type": "application/json",
-        //     "X-Requested-With": "XMLHttpRequest",
-        // },
+        timeout: 20000,
+        withCredentials: true,
+        headers: {
+            "Access-Control-Allow-Origin": process.env.REACT_APP_API,
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+        },
     });
 }
 

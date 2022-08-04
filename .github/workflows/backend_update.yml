@@ -1,6 +1,11 @@
 name: Build and Deploy Backend
 
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - "app/server"
 
 jobs:
   build_and_deploy:

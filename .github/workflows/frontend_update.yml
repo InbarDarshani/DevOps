@@ -1,6 +1,11 @@
 name: Build and Deply Frontend
 
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - "app/client"
 
 jobs:
   build_and_deploy:

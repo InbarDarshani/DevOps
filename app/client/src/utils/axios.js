@@ -1,4 +1,5 @@
 //Setup axios http requests
+import axios from "axios";
 let instanceConfig;
 
 if (process.env.NODE_ENV === "development") {
@@ -32,5 +33,5 @@ else {
     });
 }
 
-const axios = instanceConfig;
-export default axios;
+const instance = instanceConfig;
+export default instance;

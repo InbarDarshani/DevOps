@@ -1,5 +1,3 @@
-import axios from "axios";
-
 //Setup API base url from .env file
 let base_url = "";
 

@@ -1,4 +1,5 @@
 //FOR DEVELOPMENT ONLY
+//MUST REMAIN IN REACT SRC FOLDER
 //https://create-react-app.dev/docs/proxying-api-requests-in-development/#configuring-the-proxy-manually
 const { createProxyMiddleware } = require('http-proxy-middleware');
 

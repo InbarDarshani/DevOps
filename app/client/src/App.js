@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import TasksList from './components/TaskList';
-import axios from 'axios'
-import { API_BASE_URL } from './config';
+import axios from './utils/axios'
+import { API_BASE_URL } from './utils/config';
 
 const App = () => {
   const [tasks, setTasks] = useState([]);

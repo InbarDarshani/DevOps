@@ -1,6 +1,6 @@
 import React from 'react';
-import axios from 'axios'
-import { API_BASE_URL } from '../config';
+import axios from '../utils/axios'
+import { API_BASE_URL } from '../utils/config';
 
 const TaskList = ({ tasks, updateTasks }) => {
   const clickDeleteTask = (event, task) => {

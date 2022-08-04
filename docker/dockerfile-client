@@ -10,9 +10,7 @@ WORKDIR /app/client
 COPY app/client .
 
 #Packages setup
-RUN npm config set fund false 
-RUN npm install
-RUN npm run build
+RUN npm config set fund false && npm install && npm run build
 
 #--------------------- Nginx web server ---------------------#
 
@@ -26,8 +24,8 @@ WORKDIR /usr/share/nginx/html/
 RUN rm -rf /usr/share/nginx/html/*
 
 #Copy static assets from built app
-COPY --from=builder /app/client/build /usr/share/nginx/html/
-COPY --from=builder /app/client/public /usr/share/nginx/html/
+# COPY --from=builder /app/client/public /usr/share/nginx/html
+COPY --from=builder /app/client/build /usr/share/nginx/html
 
 #Containers run nginx with global directives and daemon off
 ENTRYPOINT ["nginx", "-g", "daemon off;"]

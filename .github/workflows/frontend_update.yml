@@ -1,11 +1,11 @@
-name: Build and Deply Frontend
+name: Frontend Update
 
 on:
   push:
     branches:
       - "main"
     paths:
-      - "app/client"
+      - "app/client/**"
 
 jobs:
   build_and_deploy:

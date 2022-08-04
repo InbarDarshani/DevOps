@@ -5,4 +5,4 @@ if (process.env.NODE_ENV === "development")
 else
     base_url = process.env.REACT_APP_API;
 
-export default API_BASE_URL = base_url;
+export const API_BASE_URL = base_url;

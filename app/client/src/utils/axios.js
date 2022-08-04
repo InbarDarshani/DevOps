@@ -5,7 +5,7 @@ let instanceConfig;
 if (process.env.NODE_ENV === "development") {
     instanceConfig = axios.create({
         //Default React base url is http://localhost:3000/ 
-        //Request will be proxied to the url appears in package.json - the default node server http://localhost:5000/
+        //Request will be proxied to the url appears in package.json and not the url appears here it wont work!
         baseURL: "http://localhost:3000",
         timeout: 20000,
         withCredentials: true,
@@ -23,7 +23,7 @@ else {
     instanceConfig = axios.create({
         baseURL: process.env.REACT_APP_API,
         timeout: 20000,
-        withCredentials: true,
+        withCredentials: false,
         headers: {
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Headers": "*",

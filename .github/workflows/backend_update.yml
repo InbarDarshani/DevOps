@@ -9,4 +9,4 @@ on:
 
 jobs:
   build_and_deploy:
-    uses: .github/workflows/backend.yml@main
+    uses: ./.github/workflows/backend.yml@main

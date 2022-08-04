@@ -37,4 +37,10 @@ jobs:
             sudo docker rm ${{ secrets.DOCKER_SERVER_CONTAINER }}
             sudo docker rmi ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_SERVER_REPO }}
             sudo docker pull ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_SERVER_REPO }}
-            sudo docker compose --file docker/docker-compose-server.yml --project-directory . up server -d
+
+      - uses: isbang/compose-action@v1.1.0
+        with:
+          compose-file: "./docker/docker-compose-server.yml"
+          up-flags: "--detach"
+          services: |
+            server

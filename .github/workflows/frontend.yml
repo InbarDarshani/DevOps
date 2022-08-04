@@ -34,11 +34,9 @@ jobs:
           port: ${{ secrets.PORT }}
           script_stop: true
           script: |
-            sudo cd /opt/${{ secrets.APP_NAME }}/app/client
-            sudo echo REACT_APP_API=http://{{ secrets.HOST_BACKEND }} > .env
-            sudo cd /opt/${{ secrets.APP_NAME }}
+            sudo echo REACT_APP_API=http://{{ secrets.HOST_BACKEND }} > /opt/${{ secrets.APP_NAME }}/app/client/.env
             sudo docker stop ${{ secrets.DOCKER_CLIENT_CONTAINER }}
             sudo docker rm ${{ secrets.DOCKER_CLIENT_CONTAINER }}
             sudo docker rmi ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_CLIENT_REPO }}
             sudo docker pull ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_CLIENT_REPO }}
-            sudo docker compose --file docker/docker-compose-client.yml --project-directory . up --detach
+            sudo docker compose --file /opt/${{ secrets.APP_NAME }}/docker/docker-compose-client.yml --project-directory . up --detach

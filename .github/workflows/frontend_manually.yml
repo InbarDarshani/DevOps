@@ -1,11 +1,7 @@
-name: Frontend Update
+name: Frontend Manually
 
 on:
-  push:
-    branches:
-      - "main"
-    paths:
-      - "app/client/**"
+  workflow_dispatch:
 
 jobs:
   build_and_deploy:

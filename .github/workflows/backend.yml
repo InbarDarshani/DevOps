@@ -1,8 +1,7 @@
-name: Build and Deploy Backend
+name: Backend Build and Deploy
 
 on:
   workflow_call:
-    secrets: inherit
 
 jobs:
   build:

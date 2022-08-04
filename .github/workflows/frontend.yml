@@ -1,8 +1,7 @@
-name: Build and Deply Frontend
+name: Frontend Build and Deply
 
 on:
   workflow_call:
-    secrets: inherit
 
 jobs:
   build:

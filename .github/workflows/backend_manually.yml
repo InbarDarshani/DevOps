@@ -1,11 +1,7 @@
-name: Backend Update
+name: Backend Manually
 
 on:
-  push:
-    branches:
-      - "main"
-    paths:
-      - "app/server/**"
+  workflow_dispatch:
 
 jobs:
   build_and_deploy:

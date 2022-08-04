@@ -1,13 +1,15 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
-
 const app = express();
+var cors = require('cors');
 
 const routeTasks = require('./routes/tasks');
 
-app.use(express.static(path.join(__dirname, 'client/build')));
 app.use(bodyParser.json());
+app.use(cors());
+
+app.use(express.static(path.join(__dirname, 'client/build')));
 
 app.use('/api/tasks', routeTasks, (req, res) => res.sendStatus(401));
 

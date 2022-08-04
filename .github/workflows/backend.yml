@@ -1,10 +1,9 @@
 name: Build and Deploy Backend
 
 on:
-  push:
-    branches: [ server ]
-jobs:
+  workflow_call:
 
+jobs:
   build:
     runs-on: ubuntu-latest
     steps:
@@ -14,13 +13,13 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
-      
+
       - name: Build Image
         run: docker build --file docker/dockerfile-server --tag ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_SERVER_REPO }}:latest .
 
       - name: Push to DockerHub
         run: docker push ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_SERVER_REPO }}:latest
-           
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -38,4 +37,4 @@ jobs:
             sudo docker rm ${{ secrets.DOCKER_SERVER_CONTAINER }}
             sudo docker rmi ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_SERVER_REPO }}
             sudo docker pull ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_SERVER_REPO }}
-            sudo docker compose --file docker/docker-compose-server.yml --project-directory . up -d 
+            sudo docker compose --file docker/docker-compose-server.yml --project-directory . up server -d

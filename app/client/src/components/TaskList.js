@@ -1,17 +1,17 @@
 import React from 'react';
 import axios from '../utils/axios'
-import { API_BASE_URL } from '../utils/config';
+
 
 const TaskList = ({ tasks, updateTasks }) => {
   const clickDeleteTask = (event, task) => {
     event.preventDefault();
 
-    axios.delete(`${API_BASE_URL}/api/tasks/delete/${task._id}`)
+    axios.delete(`/api/tasks/delete/${task._id}`)
       .then(res => updateTasks(res.data));
   };
 
   const toggleDone = task => {
-    axios.post(`${API_BASE_URL}/api/tasks/update/${task._id}`, { done: !task.done })
+    axios.post(`/api/tasks/update/${task._id}`, { done: !task.done })
       .then(() => updateTasks());
   };
 

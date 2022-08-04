@@ -25,7 +25,7 @@ else {
         timeout: 20000,
         withCredentials: true,
         headers: {
-            "Access-Control-Allow-Origin": process.env.REACT_APP_API,
+            "Access-Control-Allow-Origin": window.location,
             "Access-Control-Allow-Headers": "*",
             "Access-Control-Allow-Credentials": "true",
             "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",

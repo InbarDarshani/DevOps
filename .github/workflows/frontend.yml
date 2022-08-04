@@ -9,6 +9,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Create .env file
+        run: |
+          cd /opt/${{ secrets.APP_NAME }}
+          echo REACT_APP_API=http://{{ secrets.HOST_BACKEND }} > ./app/client/.env
+
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
@@ -34,7 +39,6 @@ jobs:
           port: ${{ secrets.PORT }}
           script_stop: true
           script: |
-            sudo echo REACT_APP_API=http://{{ secrets.HOST_BACKEND }} > /opt/${{ secrets.APP_NAME }}/app/client/.env
             sudo docker stop ${{ secrets.DOCKER_CLIENT_CONTAINER }}
             sudo docker rm ${{ secrets.DOCKER_CLIENT_CONTAINER }}
             sudo docker rmi ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_CLIENT_REPO }}

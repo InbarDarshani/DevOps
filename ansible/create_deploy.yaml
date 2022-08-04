@@ -1,0 +1,370 @@
+#---------------------------------- Ansible Playbook ----------------------------------#
+#------------------ https://docs.ansible.com/ansible/2.9/modules/ ---------------------#
+
+#-------------------------------------------------------------------- Hosts Creation Job --------------------------------------------------------------------#
+- name: Create AWS Resources
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+    - vars.env
+  vars:
+    ansible_host_key_checking: False
+    ansible_python_interpreter: /usr/bin/python3
+  tasks:
+    #VPC: https://docs.ansible.com/ansible/2.9/modules/ec2_vpc_net_module.html
+    - name: Create VPC
+      ec2_vpc_net:  
+        state: present              
+        name: "{{ aws_vpc_name }}"
+        cidr_block: "{{ aws_vpc_cidr }}"
+        region: "{{ aws_region }}"                
+        dns_hostnames: yes
+        dns_support: yes
+        multi_ok: no
+        tags:
+          Name: "{{ aws_vpc_name }}"
+      register: vpc
+
+    #Subnet: https://docs.ansible.com/ansible/2.9/modules/ec2_vpc_subnet_module.html
+    - name: Associate subnet to the VPC
+      ec2_vpc_subnet:
+        state: present
+        vpc_id: "{{ vpc.vpc.id }}"
+        region: "{{ aws_region }}"
+        cidr: "{{ aws_subnet_cidr }}"
+        map_public: yes
+        az: "{{ aws_subnet_az }}"
+        resource_tags:
+          Name: "{{ aws_vpc_name }}_subnet"
+        wait: yes
+      register: subnet
+
+    #Internet gateway: https://docs.ansible.com/ansible/2.9/modules/ec2_vpc_igw_module.html 
+    - name: Create internet gateway
+      ec2_vpc_igw:
+        state: present
+        vpc_id: "{{ vpc.vpc.id }}"
+        region: "{{ aws_region }}"
+        tags:
+          Name: "{{ aws_vpc_name }}_igw"
+      register: igw
+
+    #Route Table: https://docs.ansible.com/ansible/2.9/modules/ec2_vpc_route_table_module.html
+    - name: Create Route table for public Subnet
+      ec2_vpc_route_table:
+        state: present
+        vpc_id: "{{ vpc.vpc.id }}"
+        region: "{{ aws_region }}"
+        subnets:
+          - "{{ subnet.subnet.id }}"
+        routes:
+          - dest: 0.0.0.0/0
+            gateway_id: "{{ igw.gateway_id }}"
+        tags:
+          Name: "{{ aws_vpc_name }}_public_rt"
+      register: rt
+
+    #Security Group: https://docs.ansible.com/ansible/2.9/modules/ec2_group_module.html
+    - name: Create security group
+      ec2_group:
+        state: present
+        name: "{{ aws_vpc_name }}_sg"
+        description: "{{ aws_vpc_name }}_sg"
+        vpc_id: "{{ vpc.vpc.id }}"
+        region: "{{ aws_region }}"
+        rules:
+          - proto: tcp            #Open Protocol
+            ports:                #Open Ports
+              - 80                #HTTP
+              - 22                #SSH
+            cidr_ip: 0.0.0.0/0    #UNSECURED For Project Only
+            rule_desc: open to the world
+      register: sg
+
+    #EC2 Instance: https://docs.ansible.com/ansible/2.9/modules/ec2_module.html
+    - name: Create EC2 instance - backend
+      ec2:
+        instance_type: "{{ aws_server_type }}"
+        instance_tags:
+          Name: "{{ aws_server_name }}_backend"
+          Environment: "{{ env }}"
+        image: "{{ aws_centos_ami }}"
+        region: "{{ aws_region }}"
+        group_id: "{{ sg.group_id }}"
+        vpc_subnet_id: "{{ subnet.subnet.id }}"
+        key_name: "{{ aws_keypair_name }}"
+        volumes:
+          - device_name: "{{ aws_server_volume_device_name }}"
+            volume_type: "{{ aws_server_volume_type }}"
+            volume_size: "{{ aws_server_volume_size }}"
+            delete_on_termination: true                     #So the storage will be deleted with server and wont remain active
+        count_tag:
+          Name: "{{ aws_server_name }}_backend"
+          Environment: "{{ env }}"
+        exact_count: 1
+        wait: yes
+        wait_timeout: 300
+        assign_public_ip: yes
+      register: server_ec2_backend
+
+    - name: Create EC2 instance - frontend
+      ec2:
+        instance_type: "{{ aws_server_type }}"
+        instance_tags:
+          Name: "{{ aws_server_name }}_frontend"
+          Environment: "{{ env }}"
+        image: "{{ aws_centos_ami }}"
+        region: "{{ aws_region }}"
+        group_id: "{{ sg.group_id }}"
+        vpc_subnet_id: "{{ subnet.subnet.id }}"
+        key_name: "{{ aws_keypair_name }}"
+        volumes:
+          - device_name: "{{ aws_server_volume_device_name }}"
+            volume_type: "{{ aws_server_volume_type }}"
+            volume_size: "{{ aws_server_volume_size }}"
+            delete_on_termination: true                     #So the storage will be deleted with server and wont remain active
+        count_tag:
+          Name: "{{ aws_server_name }}_frontend"
+          Environment: "{{ env }}"
+        exact_count: 1
+        wait: yes
+        wait_timeout: 300
+        assign_public_ip: yes
+      register: server_ec2_frontend
+
+    #Debug: https://docs.ansible.com/ansible/2.9/modules/debug_module.html 
+    - debug: 
+        msg: 
+          - EC2 Servers were created
+          - The Backend's Public IP is {{ server_ec2_backend.tagged_instances[0].public_ip }}
+          - The Frontend's Public IP is {{ server_ec2_frontend.tagged_instances[0].public_ip }}
+
+    #https://docs.ansible.com/ansible/2.9/modules/add_host_module.html 
+    - name: Add backend to asible's hosts
+      add_host: 
+        name: "{{ server_ec2_backend.tagged_instances[0].public_ip }}"
+        groups: 
+          - app
+          - app_backend
+    - name: Add frontend to asible's hosts
+      add_host: 
+        name: "{{ server_ec2_frontend.tagged_instances[0].public_ip }}"
+        groups: 
+          - app
+          - app_frontend
+    
+    #wait: https://docs.ansible.com/ansible/2.9/modules/wait_for_module.html
+    - name: Wait for SSH to start using external IP
+      wait_for:
+        host: "{{ server_ec2_backend.tagged_instances[0].public_ip }}"
+        port: 22
+        timeout: 300
+    - name: Wait for SSH to start using external IP
+      wait_for:
+        host: "{{ server_ec2_frontend.tagged_instances[0].public_ip }}"
+        port: 22
+        timeout: 300
+
+    #---------------------------------- Save to var file ----------------------------------#
+    #Save to file https://docs.ansible.com/ansible/2.9/modules/lineinfile_module.html
+    - name: Add backend definitions to its vars file
+      lineinfile:
+        path: saved.backend.env
+        line : "{{ item }}"
+        state: present
+        create: True
+      with_items:
+          - "vpc_id: {{ vpc.vpc.id }}"
+          - "subnet_id: {{ subnet.subnet.id }}"
+          - "igw_id: {{ igw.gateway_id }}"
+          - "rt_id: {{ rt.route_table.id }}"
+          - "host_ip: {{ server_ec2_backend.tagged_instances[0].public_ip }}"
+          - "server_id: {{ server_ec2_backend.tagged_instances[0].id }}"
+    - name: Add frontend definitions to its vars file
+      lineinfile:
+        path: saved.frontend.env
+        line : "{{ item }}"
+        state: present
+        create: True
+      with_items:
+          - "vpc_id: {{ vpc.vpc.id }}"
+          - "subnet_id: {{ subnet.subnet.id }}"
+          - "igw_id: {{ igw.gateway_id }}"
+          - "rt_id: {{ rt.route_table.id }}"
+          - "host_ip: {{ server_ec2_frontend.tagged_instances[0].public_ip }}"
+          - "server_id: {{ server_ec2_frontend.tagged_instances[0].id }}"
+          - "api_ip: {{ server_ec2_backend.tagged_instances[0].public_ip }}"
+  
+#-------------------------------------------------------------------- Hosts Setup Job --------------------------------------------------------------------#
+- name: Setup hosts
+  hosts: app
+  user: centos
+  become: True
+  gather_facts: True  #Gathers facts about remote hosts
+  vars:
+    ansible_host_key_checking: False
+  tasks:
+    #yum: https://docs.ansible.com/ansible/2.9/modules/yum_module.html
+    - name: Install base packages
+      yum:
+        name:
+          - epel-release
+        state: present
+    - name: Install base packages
+      yum:
+        name:
+          - git
+          - yum-utils
+          - python-pip
+        state: present
+    
+    #---------------------------------- Docker Setup on server ----------------------------------#
+    #shell: https://docs.ansible.com/ansible/2.9/modules/shell_module.html
+    #https://docs.docker.com/engine/install/centos/ 
+    - name: Download docker 
+      shell: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+    #yum: https://docs.ansible.com/ansible/2.9/modules/yum_module.html
+    - name: Install docker packages
+      yum:
+         name:
+           - docker-ce
+           - docker-ce-cli
+           - docker-compose-plugin
+           - containerd.io
+         state: present
+      
+    #service: https://docs.ansible.com/ansible/2.9/modules/service_module.html
+    - name: Restart docker service
+      service:
+        name: docker
+        state: restarted
+        enabled: yes
+
+#-------------------------------------------------------------------- Deploy Backend Job --------------------------------------------------------------------#
+- name: Deploy backend
+  hosts: app_backend
+  user: centos
+  become: True
+  gather_facts: True  #Gathers facts about remote hosts
+  vars_files:
+    - vars.env
+    - secret.env
+    - saved.backend.env
+  vars:
+    ansible_host_key_checking: False 
+  tasks:
+    #---------------------------------- Clone git repository ----------------------------------#
+    #copy: https://docs.ansible.com/ansible/2.9/modules/copy_module.html
+    - name: Copy key file from local host to server with owner permissions
+      copy:
+        src: "~/.ssh/id_rsa"
+        dest: "~/.ssh/id_rsa"
+        mode: '0600'
+
+    #git: https://docs.ansible.com/ansible/2.9/modules/git_module.html
+    - name: Clone git repository in server
+      git:
+        repo: "{{ git_repo }}"
+        dest: /opt/{{ app_name }}
+        version: main
+        key_file: ~/.ssh/id_rsa
+        accept_hostkey: yes
+        force: yes
+
+    #---------------------------------- Run app on containers ----------------------------------#
+    #shell: https://docs.ansible.com/ansible/2.9/modules/shell_module.html
+    - name: Build docker image and push to DockerHub          #Loop for running all these docker commands
+      shell: "{{ item }}"
+      args:
+        chdir: /opt/{{ app_name }}
+      with_items:
+        #Login to DockerHub
+        - docker login --username {{ docker_user }} --password {{ docker_access_token }}            
+        #Build an image from a Dockerfile with tag 'latest' and using project folder as context folder
+        - docker build --file docker/dockerfile-server --tag {{ docker_user }}/{{ docker_server_repo }}:latest .
+        #Push the image to DockerHub
+        - docker push {{ docker_user }}/{{ docker_server_repo }}:latest                                 
+
+    - name: Run containers
+      shell: "{{ item }}"
+      args:
+        chdir: /opt/{{ app_name }}
+      with_items:
+        #Create and start db and server in the background (Detached mode)
+        - docker compose --file docker/docker-compose-server.yml --project-directory . up -d 
+    
+
+#-------------------------------------------------------------------- Deploy Frontend Job --------------------------------------------------------------------#
+- name: Deploy frontend
+  hosts: app_frontend
+  user: centos
+  become: True
+  gather_facts: True  #Gathers facts about remote hosts
+  vars_files:
+    - vars.env
+    - secret.env
+    - saved.frontend.env
+  vars:
+    ansible_host_key_checking: False 
+  tasks:
+    #---------------------------------- Clone git repository ----------------------------------#
+    #copy: https://docs.ansible.com/ansible/2.9/modules/copy_module.html
+    - name: Copy key file from local host to server with owner permissions
+      copy:
+        src: "~/.ssh/id_rsa"
+        dest: "~/.ssh/id_rsa"
+        mode: '0600'
+
+    #git: https://docs.ansible.com/ansible/2.9/modules/git_module.html
+    - name: Clone git repository in server
+      git:
+        repo: "{{ git_repo }}"
+        dest: /opt/{{ app_name }}
+        version: main
+        key_file: ~/.ssh/id_rsa
+        accept_hostkey: yes
+        force: yes
+    
+    #Save to file https://docs.ansible.com/ansible/2.9/modules/lineinfile_module.html
+    - name: Add backend's public ip to client's .env
+      lineinfile:
+        path: "/opt/{{ app_name }}/app/client/.env"
+        line : "REACT_APP_API='http://{{ api_ip }}'"
+        state: present
+        create: True
+        mode: '0600'
+
+    #---------------------------------- Run app on containers ----------------------------------#
+    #shell: https://docs.ansible.com/ansible/2.9/modules/shell_module.html
+    - name: Build docker image and push to DockerHub          #Loop for running all these docker commands
+      shell: "{{ item }}"
+      args:
+        chdir: /opt/{{ app_name }}
+      with_items:
+        #Login to DockerHub
+        - docker login --username {{ docker_user }} --password {{ docker_access_token }}            
+        #Build an image from a Dockerfile with tag 'latest' and using project folder as context folder
+        - docker build --file docker/dockerfile-client --tag {{ docker_user }}/{{ docker_client_repo }}:latest .
+        #Push the image to DockerHub
+        - docker push {{ docker_user }}/{{ docker_client_repo }}:latest                                 
+
+    - name: Run containers
+      shell: "{{ item }}"
+      args:
+        chdir: /opt/{{ app_name }}
+      with_items:
+        #Create and start db and server in the background (Detached mode)
+        - docker compose --file docker/docker-compose-client.yml --project-directory . up -d 
+    
+    #Debug: https://docs.ansible.com/ansible/2.9/modules/debug_module.html 
+    - debug:
+        msg: 
+          - The Backend's Public IP is 
+          - "{{ api_ip }}"
+          - The Frontend's Public IP is 
+          - "{{ host_ip }}"
+          - "!!!! Replace Public IP's in GitHub !!!!"
+          - Your app is available at 
+          - "http://{{ host_ip }}"

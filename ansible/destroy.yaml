@@ -1,0 +1,116 @@
+#---------------------------------- Ansible Playbook ----------------------------------#
+#------------------ https://docs.ansible.com/ansible/2.9/modules/ ---------------------#
+
+#-------------------------------------------------------------------- Hosts Termination Jobs --------------------------------------------------------------------#
+- name: Terminate Backend
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+    - vars.env
+    - saved.backend.env
+  vars:
+    ansible_host_key_checking: False
+    ansible_python_interpreter: /usr/bin/python3
+  tasks:
+    #EC2 Instance: https://docs.ansible.com/ansible/2.9/modules/ec2_module.html
+    - name: Terminate EC2 instance
+      ec2:
+        state: absent
+        instance_ids: "{{ server_id }}"
+        instance_type: "{{ aws_server_type }}"
+        region: "{{ aws_region }}"
+        image: "{{ aws_centos_ami }}"
+        vpc_subnet_id: "{{ subnet_id }}"
+        wait: yes
+
+- name: Terminate Frontend
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+    - vars.env
+    - saved.frontend.env
+  vars:
+    ansible_host_key_checking: False
+    ansible_python_interpreter: /usr/bin/python3
+  tasks:
+    #EC2 Instance: https://docs.ansible.com/ansible/2.9/modules/ec2_module.html
+    - name: Terminate EC2 instance
+      ec2:
+        state: absent
+        instance_ids: "{{ server_id }}"
+        instance_type: "{{ aws_server_type }}"
+        region: "{{ aws_region }}"
+        image: "{{ aws_centos_ami }}"
+        vpc_subnet_id: "{{ subnet_id }}"
+        wait: yes
+
+#-------------------------------------------------------------------- Resources Destroy Job --------------------------------------------------------------------#
+- name: Destroy AWS Resources
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+    - vars.env
+    - saved.backend.env   #Doesnt matter which
+  vars:
+    ansible_host_key_checking: False
+    ansible_python_interpreter: /usr/bin/python3
+  tasks:
+    #Security Group: https://docs.ansible.com/ansible/2.9/modules/ec2_group_module.html
+    - name: Delete security group
+      ec2_group:
+        state: absent
+        name: "{{ aws_vpc_name }}_sg"
+        description: "{{ aws_vpc_name }}_sg"
+        vpc_id: "{{ vpc_id }}"
+        region: "{{ aws_region }}"
+        rules:
+          - proto: tcp            #Open Protocol
+            ports:                #Open Ports
+              - 80                #HTTP
+              - 22                #SSH
+            cidr_ip: 0.0.0.0/0    #UNSECURED For Project Only
+            rule_desc: open to the world
+
+    #Internet gateway: https://docs.ansible.com/ansible/2.9/modules/ec2_vpc_igw_module.html 
+    - name: Delete internet gateway
+      ec2_vpc_igw:
+        state: absent
+        vpc_id: "{{ vpc_id }}"
+        region: "{{ aws_region }}"
+        tags:
+          Name: "{{ aws_vpc_name }}_igw"
+
+    #Subnet: https://docs.ansible.com/ansible/2.9/modules/ec2_vpc_subnet_module.html
+    - name: UnAssociate subnet to the VPC
+      ec2_vpc_subnet:
+        state: absent
+        vpc_id: "{{ vpc_id }}"
+        region: "{{ aws_region }}"
+        cidr: "{{ aws_subnet_cidr }}"
+        map_public: yes
+        az: "{{ aws_subnet_az }}"
+        resource_tags:
+          Name: "{{ aws_vpc_name }}_subnet"
+        wait: yes
+
+      #VPC: https://docs.ansible.com/ansible/2.9/modules/ec2_vpc_net_module.html
+    - name: Delete VPC
+      ec2_vpc_net:  
+        state: absent              
+        name: "{{ aws_vpc_name }}"        
+        cidr_block: "{{ aws_vpc_cidr }}"
+        region: "{{ aws_region }}"
+      
+    #Route Table: https://docs.ansible.com/ansible/2.9/modules/ec2_vpc_route_table_module.html
+    - name: Delete Route table for public Subnet
+      ec2_vpc_route_table:
+        state: absent
+        vpc_id: "{{ vpc_id }}"
+        region: "{{ aws_region }}"
+        route_table_id: "{{ rt_id }}"
+        lookup: id
+        tags:
+          Name: "{{ aws_vpc_name }}_public_rt"

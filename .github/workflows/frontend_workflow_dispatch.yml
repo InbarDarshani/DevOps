@@ -37,4 +37,4 @@ jobs:
             sudo docker rm ${{ secrets.DOCKER_CLIENT_CONTAINER }}
             sudo docker rmi ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_CLIENT_REPO }}
             sudo docker pull ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_CLIENT_REPO }}
-            sudo docker compose --file docker/docker-compose-client.yml --project-directory . up -d 
+            sudo docker compose --file docker/docker-compose-client.yml up -d 

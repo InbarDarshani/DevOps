@@ -1,4 +1,4 @@
-let base_url = window.location;
+let base_url = "";
 
 if (process.env.NODE_ENV === "development")
     base_url = 'http://localhost:3000';

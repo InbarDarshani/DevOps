@@ -328,7 +328,7 @@
         force: yes
     
     #Save to file https://docs.ansible.com/ansible/2.9/modules/lineinfile_module.html
-    - name: Add backend's public ip to client's .env
+    - name: Add backend's url to client's .env
       lineinfile:
         path: "/opt/{{ app_name }}/app/client/.env"
         line : "REACT_APP_API='http://{{ api_ip }}'"

@@ -24,6 +24,7 @@ const App = () => {
 
   return (
     <div className="App">
+      <h1>DevOps Project</h1>
       <h1>My Tasks</h1>
 
       <TasksList tasks={tasks} updateTasks={getTasks} />

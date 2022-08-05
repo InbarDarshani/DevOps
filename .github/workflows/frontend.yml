@@ -41,8 +41,6 @@ jobs:
           port: ${{ secrets.PORT }}
           script_stop: true
           script: |
-            whoami
-            ls -a
             sudo docker stop ${{ secrets.DOCKER_CLIENT_CONTAINER }}
             sudo docker rm ${{ secrets.DOCKER_CLIENT_CONTAINER }}
             sudo docker rmi ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_CLIENT_REPO }}

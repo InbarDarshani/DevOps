@@ -23,23 +23,25 @@ const App = () => {
   };
 
   return (
-    <div className="App">
-      <h1>DevOps Project</h1>
-      <h1>My Tasks</h1>
-
-      <TasksList tasks={tasks} updateTasks={getTasks} />
-
-      <form onSubmit={clickAddTask}>
-        <input
-          type="text"
-          size="30"
-          placeholder="New Task"
-          value={newTaskTitle}
-          onChange={event => setNewTaskTitle(event.target.value)}
-        />
-        <input className="btn-primary" type="submit" value="Add" />
-      </form>
-    </div>
+    <>
+      <div>
+        <h1><b>DevOps Project</b></h1>
+      </div>
+      <div className="App">
+        <h1>My Tasks</h1>
+        <TasksList tasks={tasks} updateTasks={getTasks} />
+        <form onSubmit={clickAddTask}>
+          <input
+            type="text"
+            size="30"
+            placeholder="New Task"
+            value={newTaskTitle}
+            onChange={event => setNewTaskTitle(event.target.value)}
+          />
+          <input className="btn-primary" type="submit" value="Add" />
+        </form>
+      </div>
+    </>
   );
 };
 

@@ -22,7 +22,9 @@ jobs:
           password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
       - name: Build Image
-        run: docker build --file docker/dockerfile-client --tag ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_CLIENT_REPO }}:latest .
+        run: |
+          cd docker
+          docker build --file dockerfile-client --tag ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_CLIENT_REPO }}:latest .
 
       - name: Push to DockerHub
         run: docker push ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_CLIENT_REPO }}:latest

@@ -16,7 +16,7 @@ jobs:
           password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
       - name: Build Image
-        run: docker build --file docker/dockerfile-server --tag ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_SERVER_REPO }}:latest .
+        run: docker build --file ./docker/dockerfile-server --tag ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_SERVER_REPO }}:latest .
 
       - name: Push to DockerHub
         run: docker push ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_SERVER_REPO }}:latest
@@ -34,9 +34,8 @@ jobs:
           port: ${{ secrets.PORT }}
           script_stop: true
           script: |
-            sudo cd /opt/${{ secrets.APP_NAME }}
             sudo docker stop ${{ secrets.DOCKER_SERVER_CONTAINER }}
             sudo docker rm ${{ secrets.DOCKER_SERVER_CONTAINER }}
             sudo docker rmi ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_SERVER_REPO }}
             sudo docker pull ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_SERVER_REPO }}
-            sudo docker compose --file docker/docker-compose-server.yml --project-directory . up server -d
+            sudo docker compose --file /opt/${{ secrets.APP_NAME }}/docker/docker-compose-server.yml --project-directory /opt/${{ secrets.APP_NAME }} up server -d

@@ -1,25 +1,13 @@
 # DevOps Project
+This project demonstrates the following DevOps skills:
 
-## Description
+#### Infrastructure as a Code
+AWS Cloud based infrastructure established using **Ansible** 2.9, including VPC creation and EC2 instances as app hosts.
 
+#### Working with Containers
+Building Images with **DockerFile** and Serving app on Containers using **Docker-Compose**.
+Client - **React** app exposed with **Nginx** on container.
+Server - **Node.js ** server container interacting with **Mongo** db container.
 
-## Getting Started
-
-### Development
-
-1. Install MongoDB and run on default port `27017`
-2. `npm install` in both `server` directory and `client` directory:
-   - `cd server` && `npm install`
-   - `cd client` && `npm install`
-3. `npm start` on root directory for starting the entire app - both the server and the client.
-4. Head to [localhost:3000](http://localhost:3000) to see the Demo app
-
-### Production
-
-```bash
-npm install
-npm run build
-npm run start:prod
-```
-
-The production app will be running at [localhost:5000](http://localhost:5000/).
+#### Automated CI/CD
+Automated processes using ** GitHub Actions** with relevant code changes triggers, used for building and deploying both sides of the app.

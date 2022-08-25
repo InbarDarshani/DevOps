@@ -28,7 +28,7 @@ const App = () => {
         <h1><b>DevOps Project</b></h1>
       </div>
       <div className="App">
-        <h1>My Tasks</h1>
+        <h2>My Tasks</h2>
         <TasksList tasks={tasks} updateTasks={getTasks} />
         <form onSubmit={clickAddTask}>
           <input

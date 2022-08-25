@@ -25,7 +25,7 @@ const App = () => {
   return (
     <>
       <div>
-        <h1><b>DevOps Project</b></h1>
+        <h1><b>DEVOPS IS THE BEST COURSE EVER!!!</b></h1>
       </div>
       <div className="App">
         <h1>My Tasks</h1>
